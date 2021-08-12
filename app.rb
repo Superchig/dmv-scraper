@@ -1,10 +1,12 @@
-require "selenium-webdriver"
-require "uri"
-require "net/http"
-require "json"
-require "yaml"
-require "date"
-require "table_print"
+# frozen_string_literal: true
+
+require 'selenium-webdriver'
+require 'uri'
+require 'net/http'
+require 'json'
+require 'yaml'
+require 'date'
+require 'table_print'
 
 MAX_DATE_QUERIES = 1000
 
@@ -20,8 +22,8 @@ class Office
 
   def to_json(opts)
     hash = {}
-    self.instance_variables.each do |var|
-      hash[var] = self.instance_variable_get var
+    instance_variables.each do |var|
+      hash[var] = instance_variable_get var
     end
     hash.to_json(opts)
   end
@@ -29,30 +31,30 @@ end
 
 def tp_offices(offices)
   distance_format = {
-    distance: lambda { |office| Time.at(office.dist_sec).utc.strftime("%H:%M:%S") },
+    distance: ->(office) { Time.at(office.dist_sec).utc.strftime('%H:%M:%S') }
   }
 
   date_count_format = {
-    avail_dates: lambda { |office| office.dates_available.size },
+    avail_dates: ->(office) { office.dates_available.size }
   }
 
   address_format = {
     address: {
-      display_method: lambda { |office| office.address },
-      width: 50,
-    },
+      display_method: ->(office) { office.address },
+      width: 50
+    }
   }
 
   earliest_date_format = {
     earliest: {
       display_method: lambda do |office|
         if office.dates_available.empty?
-          "N/A"
+          'N/A'
         else
-          office.dates_available.sort.first.strftime("%b %d %Y")
+          office.dates_available.min.strftime('%b %d %Y')
         end
-      end,
-    },
+      end
+    }
   }
 
   tp(offices, :name, address_format, distance_format, earliest_date_format, date_count_format)
@@ -62,8 +64,8 @@ if ARGV.size == 1
   input_file = ARGV[0]
 
   offices = JSON.parse(File.read(input_file)).map do |hash|
-    dates = hash["@dates_available"].map { |date_str| Date.parse(date_str) }
-    office = Office.new(hash["@name"], dates, hash["@address"], hash["@dist_sec"])
+    dates = hash['@dates_available'].map { |date_str| Date.parse(date_str) }
+    office = Office.new(hash['@name'], dates, hash['@address'], hash['@dist_sec'])
   end
 
   tp_offices(offices)
@@ -72,26 +74,26 @@ if ARGV.size == 1
 end
 
 driver = Selenium::WebDriver.for :firefox
-driver.navigate.to("https://www.dmv.ca.gov/portal/appointments/select-appointment-type")
+driver.navigate.to('https://www.dmv.ca.gov/portal/appointments/select-appointment-type')
 
 wait = Selenium::WebDriver::Wait.new
 
-config = YAML.load(File.read("config.yaml"))
+config = YAML.safe_load(File.read('config.yaml'))
 
 # Uses css_selector / querySelector
 automobile_button = driver
-  .find_element(css: '#appointment-type-selector .appointment-reason__selection [for="DT"] .btn')
+                    .find_element(css: '#appointment-type-selector .appointment-reason__selection [for="DT"] .btn')
 
 automobile_button.click
 
-dl_num_elem = driver.find_element(id: "dlNumber")
-dl_num_elem.send_keys(config["driver_license_number"])
+dl_num_elem = driver.find_element(id: 'dlNumber')
+dl_num_elem.send_keys(config['driver_license_number'])
 
-dob_elem = driver.find_element(id: "dob")
-dob_elem.send_keys(config["dob"])
+dob_elem = driver.find_element(id: 'dob')
+dob_elem.send_keys(config['dob'])
 
 enter_appt_selection_button = driver
-  .find_element(xpath: "/html/body/main/div[2]/div/div[1]/div[1]/section/div[4]/div/div[2]/div/div[2]/button")
+                              .find_element(xpath: '/html/body/main/div[2]/div/div[1]/div[1]/section/div[4]/div/div[2]/div/div[2]/button')
 enter_appt_selection_button.click
 
 # Wait n seconds for an element to be found, subsequent to this call
@@ -102,8 +104,8 @@ offices = []
 curr_page = 0
 
 def find_page_btns(driver)
-  driver.find_elements(css: "#location-pagination .pagination__list button.page-numbers").select do |btn|
-    /\d+/.match(btn.attribute("innerText"))
+  driver.find_elements(css: '#location-pagination .pagination__list button.page-numbers').select do |btn|
+    /\d+/.match(btn.attribute('innerText'))
   end
 end
 
@@ -116,7 +118,7 @@ page_count = page_btns.size
 
   # Make sure we're on the right page
   while page_btns.empty?
-    puts "Heading back to location selection from a..."
+    puts 'Heading back to location selection from a...'
 
     edit_loc_btn = driver.find_element(css: 'div.appointment__panel [href="/portal/appointments/select-location"]')
     edit_loc_btn.click
@@ -127,17 +129,17 @@ page_count = page_btns.size
   curr_page_btn = page_btns[curr_page - 1]
   curr_page_btn.click
 
-  puts "curr_page: #{curr_page}, btn innerText: #{curr_page_btn.attribute("innerText")}"
+  puts "curr_page: #{curr_page}, btn innerText: #{curr_page_btn.attribute('innerText')}"
 
-  wait.until { driver.find_elements(css: "li.location-results__list-item .search-card__title") }
+  wait.until { driver.find_elements(css: 'li.location-results__list-item .search-card__title') }
 
   title_card_headings = driver
-    .find_elements(css: "li.location-results__list-item .search-card__title")
+                        .find_elements(css: 'li.location-results__list-item .search-card__title')
 
   # puts "title_card_headings: #{title_card_headings}"
 
   office_names = title_card_headings.map do |heading|
-    name = heading.attribute("innerText").split(".")[1]
+    heading.attribute('innerText').split('.')[1]
   end
 
   page_offices = []
@@ -147,47 +149,45 @@ page_count = page_btns.size
     dates_available = nil
 
     loop do
-      begin
-        select_loc_btns = driver.find_elements(css: "li.location-results__list-item button.btn--select-loc")
+      select_loc_btns = driver.find_elements(css: 'li.location-results__list-item button.btn--select-loc')
 
-        # Make sure we're on the right page
-        while select_loc_btns.empty?
-          puts "Heading back to location selection from b..."
+      # Make sure we're on the right page
+      while select_loc_btns.empty?
+        puts 'Heading back to location selection from b...'
 
-          # TODO(Chris): Refactor this edit_loc_btn query into its own function
-          edit_loc_btn = driver.find_element(css: 'div.appointment__panel [href="/portal/appointments/select-location"]')
-          edit_loc_btn.click
+        # TODO(Chris): Refactor this edit_loc_btn query into its own function
+        edit_loc_btn = driver.find_element(css: 'div.appointment__panel [href="/portal/appointments/select-location"]')
+        edit_loc_btn.click
 
-          select_loc_btns = driver.find_elements(css: "li.location-results__list-item button.btn--select-loc")
-        end
-
-        puts "select_loc_btns.size: #{select_loc_btns.size}, index: #{index}"
-
-        # Use index to access select_loc_btn, so that we can update select_loc_btns in the loop
-        select_loc_btn = select_loc_btns[index]
-        select_loc_btn.click
-
-        date_elems = []
-        1.upto(MAX_DATE_QUERIES) do |i|
-          break unless date_elems.empty?
-
-          # puts "Searching again for dates..."
-
-          date_elems = driver.find_elements(css: "div.rbc-month-row div.rbc-event-allday span.rbc-event-day-num--mobile")
-
-          if i == MAX_DATE_QUERIES
-            puts "NOTE: Could not find any dates for #{name}. This may be a bug or a valid result, sorry."
-          end
-        end
-
-        dates_available = date_elems.map do |elem|
-          Date.parse(elem.attribute("innerText"))
-        end
-      rescue Selenium::WebDriver::Error::StaleElementReferenceError
-        # Try again if this error occurs, so don't put anything here intentionally
-      else
-        break
+        select_loc_btns = driver.find_elements(css: 'li.location-results__list-item button.btn--select-loc')
       end
+
+      puts "select_loc_btns.size: #{select_loc_btns.size}, index: #{index}"
+
+      # Use index to access select_loc_btn, so that we can update select_loc_btns in the loop
+      select_loc_btn = select_loc_btns[index]
+      select_loc_btn.click
+
+      date_elems = []
+      1.upto(MAX_DATE_QUERIES) do |i|
+        break unless date_elems.empty?
+
+        # puts "Searching again for dates..."
+
+        date_elems = driver.find_elements(css: 'div.rbc-month-row div.rbc-event-allday span.rbc-event-day-num--mobile')
+
+        if i == MAX_DATE_QUERIES
+          puts "NOTE: Could not find any dates for #{name}. This may be a bug or a valid result, sorry."
+        end
+      end
+
+      dates_available = date_elems.map do |elem|
+        Date.parse(elem.attribute('innerText'))
+      end
+    rescue Selenium::WebDriver::Error::StaleElementReferenceError
+    # Try again if this error occurs, so don't put anything here intentionally
+    else
+      break
     end
 
     page_offices.push(Office.new(name, dates_available, nil, nil))
@@ -204,7 +204,7 @@ page_count = page_btns.size
 
     # Make sure we're on the right page
     while page_btns.empty?
-      puts "Heading back to location selection from c..."
+      puts 'Heading back to location selection from c...'
 
       edit_loc_btn = driver.find_element(css: 'div.appointment__panel [href="/portal/appointments/select-location"]')
       edit_loc_btn.click
@@ -216,22 +216,22 @@ page_count = page_btns.size
     page_btns[curr_page - 1].click
   end
 
-  address_divs = driver.find_elements(css: "li.location-results__list-item [itemprop=address]")
+  address_divs = driver.find_elements(css: 'li.location-results__list-item [itemprop=address]')
 
   # Make sure we're on the right page
   while address_divs.empty?
-    puts "Heading back to location selection from d..."
+    puts 'Heading back to location selection from d...'
 
-    wait.until { driver.execute_script("return document.readyState") == "complete" }
+    wait.until { driver.execute_script('return document.readyState') == 'complete' }
 
     edit_loc_btn = driver.find_element(css: 'div.appointment__panel [href="/portal/appointments/select-location"]')
     edit_loc_btn.click
 
-    address_divs = driver.find_elements(css: "li.location-results__list-item [itemprop=address]")
+    address_divs = driver.find_elements(css: 'li.location-results__list-item [itemprop=address]')
   end
 
   addresses = address_divs.map do |div|
-    div.attribute("innerText").gsub(/[\r\n]/, ", ").gsub("CA", " CA ")
+    div.attribute('innerText').gsub(/[\r\n]/, ', ').gsub('CA', ' CA ')
   end
 
   page_offices.each_with_index do |office, index|
@@ -241,26 +241,26 @@ page_count = page_btns.size
   offices.concat(page_offices)
 end
 
-File.write("most_recent_pre.json", JSON.pretty_generate(offices))
+File.write('most_recent_pre.json', JSON.pretty_generate(offices))
 
-starting_addr = config["starting_addr"].gsub(" ", "+")
-maps_api_key = config["maps_api_key"]
+starting_addr = config['starting_addr'].gsub(' ', '+')
+maps_api_key = config['maps_api_key']
 
 params = {
   origins: starting_addr,
   # destinations: offices.map { |office| office.address.gsub(' ', '+') }.join('|'),
   key: maps_api_key,
-  units: "imperial",
+  units: 'imperial'
 }
 
 dist_secs = []
 
-uri = URI("https://maps.googleapis.com/maps/api/distancematrix/json")
+uri = URI('https://maps.googleapis.com/maps/api/distancematrix/json')
 
 offices.each_slice(10) do |batch|
   puts uri
 
-  params["destinations"] = batch.map { |office| office.address.gsub(" ", "+") }.join("|")
+  params['destinations'] = batch.map { |office| office.address.gsub(' ', '+') }.join('|')
 
   uri.query = URI.encode_www_form(params)
 
@@ -269,8 +269,8 @@ offices.each_slice(10) do |batch|
   if res.is_a?(Net::HTTPSuccess)
     body = JSON.parse(res.body)
 
-    dist_secs.concat(body["rows"][0]["elements"].map do |elem|
-      elem["duration"]["value"]
+    dist_secs.concat(body['rows'][0]['elements'].map do |elem|
+      elem['duration']['value']
     end)
   else
     p res
@@ -288,11 +288,11 @@ end
 
 offices.sort! { |a, b| a.dist_sec <=> b.dist_sec }
 
-File.write("most_recent.json", JSON.pretty_generate(offices))
+File.write('most_recent.json', JSON.pretty_generate(offices))
 
 tp_offices(offices)
 
-print "Press enter to exit: "
+print 'Press enter to exit: '
 
 gets.chomp
 
