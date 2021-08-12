@@ -1,0 +1,19 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    childprocess (3.0.0)
+    rubyzip (2.3.2)
+    selenium-webdriver (3.142.7)
+      childprocess (>= 0.5, < 4.0)
+      rubyzip (>= 1.2.2)
+    table_print (1.5.7)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  selenium-webdriver
+  table_print
+
+BUNDLED WITH
+   2.2.19
