@@ -4,3 +4,7 @@ dob
 starting_addr
 most_recent.json
 most_recent_pre.json
+
+config.yaml
+
+scrap.rb

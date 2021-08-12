@@ -2,6 +2,7 @@ require "selenium-webdriver"
 require "uri"
 require "net/http"
 require "json"
+require "yaml"
 require "date"
 require "table_print"
 
@@ -75,6 +76,8 @@ driver.navigate.to("https://www.dmv.ca.gov/portal/appointments/select-appointmen
 
 wait = Selenium::WebDriver::Wait.new
 
+config = YAML.load(File.read("config.yaml"))
+
 # Uses css_selector / querySelector
 automobile_button = driver
   .find_element(css: '#appointment-type-selector .appointment-reason__selection [for="DT"] .btn')
@@ -82,10 +85,10 @@ automobile_button = driver
 automobile_button.click
 
 dl_num_elem = driver.find_element(id: "dlNumber")
-dl_num_elem.send_keys(File.read("driver_license_number"))
+dl_num_elem.send_keys(config["driver_license_number"])
 
 dob_elem = driver.find_element(id: "dob")
-dob_elem.send_keys(File.read("dob"))
+dob_elem.send_keys(config["dob"])
 
 enter_appt_selection_button = driver
   .find_element(xpath: "/html/body/main/div[2]/div/div[1]/div[1]/section/div[4]/div/div[2]/div/div[2]/button")
@@ -240,8 +243,8 @@ end
 
 File.write("most_recent_pre.json", JSON.pretty_generate(offices))
 
-starting_addr = File.read("starting_addr").gsub(" ", "+")
-maps_api_key = File.read("maps_api_key")
+starting_addr = config["starting_addr"].gsub(" ", "+")
+maps_api_key = config["maps_api_key"]
 
 params = {
   origins: starting_addr,
