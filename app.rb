@@ -258,11 +258,11 @@ dist_secs = []
 uri = URI('https://maps.googleapis.com/maps/api/distancematrix/json')
 
 offices.each_slice(10) do |batch|
-  puts uri
-
   params['destinations'] = batch.map { |office| office.address.gsub(' ', '+') }.join('|')
 
   uri.query = URI.encode_www_form(params)
+
+  puts uri
 
   res = Net::HTTP.get_response(uri)
 
