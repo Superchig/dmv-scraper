@@ -1,5 +1,5 @@
 driver_license_number: A1234567
-# 11051999 means Nov 5, 1999
-dob: 11051999
+# "11051999" means Nov 5, 1999
+dob: "11051999"
 starting_addr: 123 Main Street
 maps_api_key: <KEY>
