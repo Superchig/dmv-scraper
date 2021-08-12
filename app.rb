@@ -60,7 +60,6 @@ end
 if ARGV.size == 1
   input_file = ARGV[0]
 
-  # offices = Office.from_json(File.read(input_file))
   offices = JSON.parse(File.read(input_file)).map do |hash|
     dates = hash["@dates_available"].map { |date_str| Date.parse(date_str) }
     office = Office.new(hash["@name"], dates, hash["@address"], hash["@dist_sec"])
@@ -256,6 +255,8 @@ dist_secs = []
 uri = URI("https://maps.googleapis.com/maps/api/distancematrix/json")
 
 offices.each_slice(10) do |batch|
+  puts uri
+
   params["destinations"] = batch.map { |office| office.address.gsub(" ", "+") }.join("|")
 
   uri.query = URI.encode_www_form(params)
