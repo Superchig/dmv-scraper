@@ -4,8 +4,7 @@ searching their offices for available driving test dates and sorting the
 offices by distance to a specified address.
 
 ## Requirements
-This relies on Google's Distance Matrix API, so it requires an API key, stored
-in a file named maps_api_key.
+This relies on Google's Distance Matrix API, so it requires an API key.
 
 Your driver's license / instructional permit number, as well as a date of
 birth, are required by the CA DMV to set up a driving appointment.
