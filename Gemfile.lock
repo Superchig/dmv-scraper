@@ -2,6 +2,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     childprocess (3.0.0)
+    mail (2.7.1)
+      mini_mime (>= 0.1.1)
+    mini_mime (1.1.0)
     rubyzip (2.3.2)
     selenium-webdriver (3.142.7)
       childprocess (>= 0.5, < 4.0)
@@ -12,6 +15,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  mail (~> 2.7.1)
   selenium-webdriver
   table_print
 

@@ -8,3 +8,4 @@ git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 
 gem 'selenium-webdriver'
 gem 'table_print'
+gem 'mail', '~> 2.7.1'
