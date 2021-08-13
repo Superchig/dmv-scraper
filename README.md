@@ -15,3 +15,5 @@ A default config.yaml is provided.
 ## TODO
 - [x] Store necessary configuration information in a yaml file, with an
       example
+- [x] Send email regarding nearby offices with available dates, according to
+      --target-date CLI option
