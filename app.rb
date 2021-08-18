@@ -312,8 +312,8 @@ OptionParser.new do |opts|
     options[:parse] = v
   end
 
-  opts.on('-u', '--update-distance', 'Update the distances from the starting address') do |_v|
-    options[:update_distance] = true
+  opts.on('-u BOOL', '--update-distance BOOL', TrueClass, 'Whether or not to update the distances from the starting address') do |v|
+    options[:update_distance] = v
   end
 
   opts.on('-d', '--target-date DATE', Date,
